@@ -2,17 +2,19 @@ import pytest
 from index import text_to_number, number_to_text, base64_to_number, number_to_base64
 
 
+
 def test_dependencies_installed():
     # check if all dependencies are installed
     for dep in ["flask", "num2words", "text2digits"]:
         try:
             __import__(dep)
         except ImportError:
-            pytest.fail(f"Missing dependency: {dep}. Install with 'pip install {dep}'.")
+            pytest.fail(f"Missing dependency: {dep}")
 
 def test_text_to_number():
     #correct input
-    assert text_to_number("one") == 1
+    #BUG FIX: text2digits wasn't used at all in orginial implementation, this would fail
+    assert text_to_number("twenty one") == 21
 
     #incorrect input
     with pytest.raises(ValueError):
@@ -41,25 +43,19 @@ def test_number_to_text():
     # basic numbers 
     assert number_to_text(1) == "one"
     assert number_to_text(22) == "twenty-two"
+    assert number_to_text(-1) == "minus one"
 
     # ordinal numbers
-    assert number_to_text(1) == "first"
-
-    # negative numbers
-    assert number_to_text(-1) == "minus one"
+    assert number_to_text(1, to='ordinal') == "first"
 
     # non-numerical input
     with pytest.raises(ValueError):
         number_to_text("hewan")
     with pytest.raises(ValueError):
         number_to_text("")
-    with pytest.raises(ValueError):
-        number_to_text("")
-
 
 
 def test_base64_to_number():
-    """Test base64 to number conversion"""
     # Test basic base64 strings
     assert base64_to_number("AQ==") == 1  # base64 of 1
     
@@ -83,7 +79,6 @@ def test_number_to_base64():
     # Test basic numbers
     assert number_to_base64(1) == "AQ=="
 
-    
     # Test negative numbers
     assert number_to_base64(-1) == "//8="  # base64 of -1
     
@@ -98,12 +93,8 @@ def test_number_to_base64():
         number_to_base64(None)
 
 def test_base64_byteorder_bug_detection():
-    """
-    Test to detect the byteorder bug in both base64 functions.
-    This test would FAIL if byteorder='big' was used instead of byteorder='little' in either function.
-    """
-    # Test round-trip conversion with a number that produces different results
-    # with big vs little endian (256 spans 2 bytes)
+    #BUG FIX: byteorder was set to big instead of little
+
     original = 256
     base64_str = number_to_base64(original)
     converted_back = base64_to_number(base64_str)
