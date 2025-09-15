@@ -9,6 +9,8 @@ app = Flask(__name__)
 def text_to_number(text):
     """Convert English text number to integer"""
     # BUG FIX: text2digits wasn't used at all
+    text = re.sub(r'[^a-zA-Z\s-]', '', text.lower())
+
     try:
         # Use text2digits library to convert text to digits
         t2d = text2digits.Text2Digits()
